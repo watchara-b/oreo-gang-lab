@@ -18,6 +18,6 @@ jobs:
         with:
           HOST_IP: ${{ vars.HOST_IP }}
           
-       - name: Check
+      - name: Check
         run: |
           echo "HOST_IP from Action: $result"
