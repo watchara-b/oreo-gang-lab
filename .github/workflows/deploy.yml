@@ -5,6 +5,18 @@ on:
     branches:
       - main
 
+  workflow_dispatch:
+    inputs:
+      env:
+        type: choice
+        description: Environment
+        required: true
+        default: "dev-ocp"
+        options:
+          - dev-ocp
+          - sit-ocp
+          - uat-ocp
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
