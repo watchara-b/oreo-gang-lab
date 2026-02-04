@@ -13,26 +13,34 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v4
 
-    # สร้างไฟล์ db.txt จาก GitHub Secret
-    - name: Create secret file
+    # สร้าง secret.yaml จาก GitHub Secrets
+    - name: Generate secret.yaml
       run: |
-        echo "${{ secrets.SNB_SECRET_IOT }}" > db-snb_secret.txt
+        cat <<EOF > secret.yaml
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: my-db-secret
+        type: Opaque
+        stringData:
+          db.txt: |
+            username=${{ secrets.SNB_DB_USER }}
+            password=${{ secrets.SNB_DB_PWD }}
+        EOF
 
-    # ตั้งค่า kubeconfig (ตัวอย่างใช้ secret เก็บ kubeconfig)
+    # ตั้งค่า kubeconfig (เก็บไว้ใน GitHub Secret ชื่อ KUBECONFIG)
     - name: Set kubeconfig
       run: |
         mkdir -p $HOME/.kube
         echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
 
-    # สร้าง / update Kubernetes Secret
-    - name: Create Kubernetes Secret
+    # Apply Secret เข้า cluster
+    - name: Apply Secret
       run: |
-        kubectl create secret generic db-secret \
-          --from-file=db-snb_secret.txt \
-          --dry-run=client -o yaml | kubectl apply -f -
+        kubectl apply -f secret.yaml
 
-    # deploy app
-    - name: Deploy app
+    # Deploy app
+    - name: Deploy App
       run: |
         kubectl apply -f deployment.yaml
 
