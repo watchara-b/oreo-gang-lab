@@ -1,0 +1,38 @@
+name: Deploy App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+
+    # สร้างไฟล์ db.txt จาก GitHub Secret
+    - name: Create secret file
+      run: |
+        echo "${{ secrets.SNB_SECRET_IOT }}" > db-snb_secret.txt
+
+    # ตั้งค่า kubeconfig (ตัวอย่างใช้ secret เก็บ kubeconfig)
+    - name: Set kubeconfig
+      run: |
+        mkdir -p $HOME/.kube
+        echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+
+    # สร้าง / update Kubernetes Secret
+    - name: Create Kubernetes Secret
+      run: |
+        kubectl create secret generic db-secret \
+          --from-file=db-snb_secret.txt \
+          --dry-run=client -o yaml | kubectl apply -f -
+
+    # deploy app
+    - name: Deploy app
+      run: |
+        kubectl apply -f deployment.yaml
+

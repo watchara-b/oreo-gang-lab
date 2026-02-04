@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: my-app
+        image: nginx   # เปลี่ยนเป็น image จริงของคุณ
+
+        volumeMounts:
+        - name: secret-vol
+          mountPath: /etc/secret
+          readOnly: true
+
+      volumes:
+      - name: secret-vol
+        secret:
+          secretName: db-secret
+
